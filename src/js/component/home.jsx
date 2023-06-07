@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 function TodoList() {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
   const [hoveredTask, setHoveredTask] = useState(null);
+
+  const obtainTasks = () => {
+    fetch('https://assets.breatheco.de/apis/fake/todos/user/deborahdobles')
+    .then((response) => response.json())
+    .then((data) => setTodos(data));
+    };
 
   const handleInputChange = (event) => {
     setNewTodo(event.target.value);
@@ -14,7 +20,7 @@ function TodoList() {
       event.preventDefault();
       const trimmedTodo = newTodo.trim();
       if (trimmedTodo.length > 0) {
-        const newTodoItem = { id: Date.now(), text: trimmedTodo };
+        const newTodoItem = { label: trimmedTodo, done: false };
         const updatedTodos = todos.concat(newTodoItem);
         setTodos(updatedTodos);
         setNewTodo('');
@@ -22,10 +28,40 @@ function TodoList() {
     }
   };
 
+  const handleUpdate = (list) => {
+    if (todos.length > 1){
+      fetch('https://assets.breatheco.de/apis/fake/todos/user/deborahdobles', {
+      method: "PUT",
+      body: JSON.stringify(list),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+    .then(resp => {
+        if (resp.ok){
+          obtainTasks()
+        }
+    })
+    .catch(error => {
+        //error handling
+        console.log(error);
+    });
+  } else {
+    obtainTasks()
+  }
+  }
   const handleDelete = (id) => {
-    const updatedTodos = todos.filter((todo) => todo.id !== id);
+    const updatedTodos = todos.slice(id + 1)
     setTodos(updatedTodos);
   };
+
+
+
+  useEffect(() => { 
+    handleUpdate(todos)
+    console.log(todos);
+  },[todos] )
+
 
   return (
     <div className='text-center'>
@@ -34,19 +70,19 @@ function TodoList() {
         <input type="text" value={newTodo} onChange={handleInputChange} onKeyPress={handleKeyPress} placeholder="What needs to be done?"/>
         {todos.length > 0 ? (
           <ul>
-            {todos.map((todo) => (
+            {todos.map((todo, index) => (
               <li
-                key={todo.id}
+                key={index}
                 className={`container border border-subtle ${
-                  hoveredTask === todo.id ? 'hovered' : ''
+                  hoveredTask === index ? 'hovered' : ''
                 }`}
-                onMouseEnter={() => setHoveredTask(todo.id)}
+                onMouseEnter={() => setHoveredTask(index)}
                 onMouseLeave={() => setHoveredTask(null)}
               >
-                {todo.text}
-                {hoveredTask === todo.id && (
+                {todo.label}
+                {hoveredTask === index && (
                   <button
-                    className='deleteTask' onClick={() => handleDelete(todo.id)}>x
+                    className='deleteTask' onClick={() => handleDelete(index)}>x
                   </button>
                 )}
               </li>
