@@ -39,7 +39,6 @@ function TodoList() {
     })
     .then(resp => {
         if (resp.ok){
-          obtainTasks()
         }
     })
     .catch(error => {
@@ -47,20 +46,23 @@ function TodoList() {
         console.log(error);
     });
   } else {
-    obtainTasks()
   }
   }
-  const handleDelete = (id) => {
-    const updatedTodos = todos.slice(id + 1)
-    setTodos(updatedTodos);
+  const handleDelete = (index) => {
+    setTodos(current =>[
+      ...current.slice(0, index),
+      ...current.slice(index + 1, current.length)
+      ]);
   };
-
-
 
   useEffect(() => { 
     handleUpdate(todos)
     console.log(todos);
   },[todos] )
+
+  useEffect(() => { 
+    obtainTasks()
+  },[] )
 
 
   return (
@@ -69,7 +71,7 @@ function TodoList() {
       <div className='container fluid border border-subtle'>
         <input type="text" value={newTodo} onChange={handleInputChange} onKeyPress={handleKeyPress} placeholder="What needs to be done?"/>
         {todos.length > 0 ? (
-          <ul>
+          <ul className='list-unstyled'>
             {todos.map((todo, index) => (
               <li
                 key={index}
